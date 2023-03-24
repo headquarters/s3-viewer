@@ -5,6 +5,8 @@
 	export let form: ActionData;
 	let path = form?.path || 's3://test-s3-listing-3846939';
 	let region = form?.region || 'us-east-2';
+	let directories = form?.directories || [];
+	let files = form?.files || [];
 </script>
 
 <svelte:head>
@@ -50,4 +52,11 @@
 			List Objects
 		</button>
 	</form>
+
+	{#each directories as dir}
+		{dir}
+	{/each}
+	{#each files as file}
+		{file}
+	{/each}
 </div>

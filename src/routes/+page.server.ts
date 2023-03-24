@@ -40,18 +40,38 @@ export const actions = {
       Bucket: bucket,
       Prefix: key,
       Delimiter: '/',
-      MaxKeys: 10
+      MaxKeys: 30
     });
 
 
     const response = await client.send(command);
+    const directories: string[] = [];
+    const files: string[] = [];
 
     const { NextContinuationToken, IsTruncated, Contents, CommonPrefixes } = response;
+
+    if (Array.isArray(CommonPrefixes)) {
+      for (const prefix of CommonPrefixes) {
+        if (prefix.Prefix) {
+          directories.push(prefix.Prefix.replace(key, ""))
+        }
+      }
+    }
+
+    if (Array.isArray(Contents)) {
+      for (const object of Contents) {
+        if (object.Key) {
+          files.push(object.Key.replace(key, ""))
+        }
+      }
+    }
 
     console.log({ response });
 
     return {
       success: true,
+      directories,
+      files,
       path,
       region
     };
