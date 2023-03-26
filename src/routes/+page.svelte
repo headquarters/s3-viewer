@@ -1,12 +1,14 @@
 <script lang="ts">
 	import LargeSpinner from '$components/LargeSpinner.svelte';
 	import SmallSpinner from '$components/SmallSpinner.svelte';
-	import type { ActionData } from './$types';
-	export let form: ActionData;
-	let path = form?.path || 's3://test-s3-listing-3846939';
-	let region = form?.region || 'us-east-2';
-	let directories = form?.directories || [];
-	let files = form?.files || [];
+	import type { PageData } from './$types';
+	export let data: PageData;
+	let path = data?.path || 's3://test-s3-listing-3846939';
+	let region = data?.region || 'us-east-2';
+	let directories = data?.directories || [];
+	let files = data?.files || [];
+	let error = data?.error;
+	let continuationToken = data?.continuationToken;
 </script>
 
 <svelte:head>
@@ -21,7 +23,7 @@
 		locally where your AWS access keys are available.
 	</p>
 
-	<form method="POST">
+	<form>
 		<div class="max-w-xs mb-4">
 			<label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
 				>S3 Path</label>
@@ -53,10 +55,34 @@
 		</button>
 	</form>
 
-	{#each directories as dir}
-		{dir}
-	{/each}
-	{#each files as file}
-		{file}
-	{/each}
+	{#if directories}
+		<ul>
+			{#each directories as dir}
+				<li>
+					<a href="#">{dir}</a>
+				</li>
+			{/each}
+		</ul>
+	{/if}
+	{#if files}
+		<ul>
+			{#each files as file}
+				<li>{file}</li>
+			{/each}
+		</ul>
+	{/if}
+
+	<!-- Previous Button -->
+	<a
+		href="#"
+		class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+		Previous
+	</a>
+
+	<!-- Next Button -->
+	<a
+		href="#"
+		class="inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+		Next
+	</a>
 </div>
