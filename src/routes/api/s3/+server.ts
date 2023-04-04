@@ -40,27 +40,26 @@ export async function GET({ url }: RequestEvent) {
 	const response = await client.send(command);
 	const directories: string[] = [];
 	const files: string[] = [];
-	const { NextContinuationToken, Contents, CommonPrefixes } = response;
+	const { NextContinuationToken = null, Contents, CommonPrefixes } = response;
 
 	if (Array.isArray(CommonPrefixes)) {
 		for (const prefix of CommonPrefixes) {
 			if (prefix.Prefix) {
-				directories.push(prefix.Prefix.replace(key, ""))
+				directories.push(prefix.Prefix.substring(key.length))
 			}
 		}
 	}
 
 	if (Array.isArray(Contents)) {
 		for (const object of Contents) {
-			if (object.Key) {
-				files.push(object.Key.replace(key, ""))
+			if (object.Key && object.Key.length !== key.length) {
+				files.push(object.Key.substring(key.length))
 			}
 		}
 	}
 
-	console.log({ directories, files });
-
 	return json({
+		path,
 		directories,
 		files,
 		token: NextContinuationToken,

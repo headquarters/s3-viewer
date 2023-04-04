@@ -3,20 +3,19 @@
 	import SmallSpinner from '$components/SmallSpinner.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+
 	export let data: PageData;
-	// let page = 1;
 	let currentPage = 1;
 
-	const getPreviousUrl = () => {
-		const url = $page.url;
+	// Svelte pre-loads the page `load` behind the scenes with pre-fetching, so
+	// generate a new URL "idempotently" to ensure we don't end up with duplicate search param keys
+	const getPreviousUrl = (currentPage: number, continuationToken: string | null) => {
+		const url = new URL($page.url.origin);
+
+		url.searchParams.append('path', path);
+		url.searchParams.append('region', region);
 		url.searchParams.append('page', (currentPage - 1).toString());
 
-		return url;
-	};
-
-	const getNextUrl = (currentPage: number, continuationToken: string | null) => {
-		const url = $page.url;
-		url.searchParams.append('page', (currentPage + 1).toString());
 		if (continuationToken) {
 			url.searchParams.append('token', continuationToken);
 		}
@@ -24,17 +23,46 @@
 		return url;
 	};
 
+	const getNextUrl = (currentPage: number, continuationToken: string | null) => {
+		const url = new URL($page.url.origin);
+
+		url.searchParams.append('path', path);
+		url.searchParams.append('region', region);
+		url.searchParams.append('page', (currentPage + 1).toString());
+
+		if (continuationToken) {
+			url.searchParams.append('token', continuationToken);
+		}
+
+		return url;
+	};
+
+	const getDirectoryHref = (continuationToken: string | null, directory: string) => {
+		const url = new URL($page.url.origin);
+
+		url.searchParams.append('path', `${path}/${directory}`);
+		url.searchParams.append('region', region);
+		url.searchParams.append('page', '1');
+
+		if (continuationToken) {
+			url.searchParams.append('token', continuationToken);
+		}
+
+		return url.href;
+	};
+
 	$: path = data?.path || 's3://test-s3-listing-3846939';
 	$: region = data?.region || 'us-east-2';
 	$: directories = data?.directories || [];
 	$: files = data?.files || [];
-	$: error = data?.error;
+	$: error = data?.error; // TODO
 	$: continuationToken = data?.token;
-
-	$: console.dir({ data }, continuationToken);
 	$: noData = !error && !directories.length && !files.length;
-	$: currentPage = 1;
+	$: currentPage = Number($page.url.searchParams.get('page')) || 1;
+	$: previousUrl = getPreviousUrl(currentPage, continuationToken);
 	$: nextUrl = getNextUrl(currentPage, continuationToken);
+	$: hasPrevious = currentPage > 1;
+	$: hasNext = Boolean(continuationToken);
 </script>
 
 <svelte:head>
@@ -44,7 +72,7 @@
 <div class="max-w-s p-4">
 	<h1 class="text-xl mb-4">S3 Pagination with Svelte</h1>
 
-	<div class="grid md:grid-cols-2 gap-3">
+	<div class="grid md:grid-cols-2 gap-6">
 		<div>
 			<p class="my-4">
 				An example in Svelte that lists S3 objects with pagination via the continuation token (not
@@ -90,13 +118,17 @@
 					<p>Nothing to list, yet. Provide a bucket and region to list contents.</p>
 				</div>
 			{:else}
-				<div class="">
-					<div class="file-list max-h-96 overflow-y-scroll">
-						{#if directories}
+				<div>
+					<h2>
+						<code>{path}</code>
+					</h2>
+					<hr />
+					<div class="file-list max-h-96 h-screen p-3 overflow-y-scroll">
+						{#if directories.length}
 							<ul>
 								{#each directories as dir}
 									<li>
-										<a href="#">
+										<a href={getDirectoryHref(continuationToken, dir)}>
 											<span class="icon">
 												<svg
 													fill="none"
@@ -110,13 +142,13 @@
 														stroke-linejoin="round"
 														d="M2.25 12.75V12A2.25 2.25 0 014.5 9.75h15A2.25 2.25 0 0121.75 12v.75m-8.69-6.44l-2.12-2.12a1.5 1.5 0 00-1.061-.44H4.5A2.25 2.25 0 002.25 6v12a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9a2.25 2.25 0 00-2.25-2.25h-5.379a1.5 1.5 0 01-1.06-.44z" />
 												</svg></span>
-											{dir}
+											<span class="underline text-blue-600">{dir}</span>
 										</a>
 									</li>
 								{/each}
 							</ul>
 						{/if}
-						{#if files}
+						{#if files.length}
 							<ul>
 								{#each files as file}
 									<li>
@@ -140,16 +172,18 @@
 							</ul>
 						{/if}
 					</div>
-					<!-- Previous Button -->
+
 					<div class="pagination">
 						<a
-							href="?previous"
+							href={hasPrevious ? previousUrl.href : null}
+							class:opacity-50={!hasPrevious}
 							class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
 							Previous
 						</a>
 
 						<a
-							href={nextUrl.href}
+							href={hasNext ? nextUrl.href : null}
+							class:opacity-50={!hasNext}
 							class="inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
 							Next
 						</a>
