@@ -51,7 +51,21 @@
 		return url.href;
 	};
 
+	// "Bucket names can consist only of lowercase letters, numbers, dots (.), and hyphens (-)."
+	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
+	const getBucketAndKey = (path: string) => {
+		const bucketKeyRegex = new RegExp('s3://(?<bucket>[a-z0-9-.]+)/?(?<key>.+)?', 'gi');
+
+		const match = bucketKeyRegex.exec(path);
+
+		const bucket = match?.groups?.bucket ?? null;
+		const key = match?.groups?.key ?? null;
+
+		return { bucket, key };
+	};
+
 	$: path = data?.path || 's3://test-s3-listing-3846939';
+	$: pathParts = getBucketAndKey(path);
 	$: region = data?.region || 'us-east-2';
 	$: directories = data?.directories || [];
 	$: files = data?.files || [];
@@ -123,6 +137,9 @@
 						<code>{path}</code>
 					</h2>
 					<hr />
+					{#if pathParts.key}
+						up button
+					{/if}
 					<div class="file-list max-h-96 h-screen p-3 overflow-y-scroll">
 						{#if directories.length}
 							<ul>

@@ -11,6 +11,10 @@ export async function GET({ url }: RequestEvent) {
 	const region = url.searchParams.get('region') as string;
 	const token = url.searchParams.get('token') as string;
 
+	if (region !== defaultRegion) {
+		client = new S3Client({ region });
+	}
+
 	let fullPath = path;
 
 	if (path.substring(0, 5) !== "s3://") {
