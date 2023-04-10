@@ -44,9 +44,9 @@
 		url.searchParams.append('region', region);
 		url.searchParams.append('page', '1');
 
-		if (continuationToken) {
-			url.searchParams.append('token', continuationToken);
-		}
+		// if (continuationToken) {
+		// url.searchParams.append('token', '');
+		// }
 
 		return url.href;
 	};
@@ -62,6 +62,26 @@
 		const key = match?.groups?.key ?? null;
 
 		return { bucket, key };
+	};
+
+	const removeLastPathSegment = (path: string) => {
+		let newPath = path.replace(/\/+$/, '');
+		const lastSlashIndex = newPath.lastIndexOf('/');
+		if (lastSlashIndex !== -1) {
+			newPath = newPath.substring(0, lastSlashIndex);
+		}
+		return newPath;
+	};
+
+	const getBackUrl = () => {
+		const url = new URL($page.url.origin);
+
+		url.searchParams.append('path', removeLastPathSegment(path));
+		url.searchParams.append('region', region);
+		url.searchParams.append('page', '1');
+		// url.searchParams.append('token', '');
+
+		return url.href;
 	};
 
 	$: path = data?.path || 's3://test-s3-listing-3846939';
@@ -133,13 +153,33 @@
 				</div>
 			{:else}
 				<div>
-					<h2>
-						<code>{path}</code>
-					</h2>
+					<div class="flex items-center justify-between pt-4 pb-2 min-h-[4rem]">
+						<h2>
+							<code>{path}</code>
+						</h2>
+						{#if pathParts.key}
+							<a
+								href={getBackUrl()}
+								class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+								<svg
+									xmlns="http://www.w3.org/2000/svg"
+									fill="none"
+									viewBox="0 0 24 24"
+									stroke-width="1.5"
+									stroke="currentColor"
+									class="w-4 h-4">
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										d="M12 19.5v-15m0 0l-6.75 6.75M12 4.5l6.75 6.75" />
+								</svg>
+
+								Up
+							</a>
+						{/if}
+					</div>
 					<hr />
-					{#if pathParts.key}
-						up button
-					{/if}
+
 					<div class="file-list max-h-96 h-screen p-3 overflow-y-scroll">
 						{#if directories.length}
 							<ul>
@@ -194,15 +234,40 @@
 						<a
 							href={hasPrevious ? previousUrl.href : null}
 							class:opacity-50={!hasPrevious}
-							class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+							class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								class="w-4 h-4">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75" />
+							</svg>
+
 							Previous
 						</a>
 
 						<a
 							href={hasNext ? nextUrl.href : null}
 							class:opacity-50={!hasNext}
-							class="inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
+							class="inline-flex items-center gap-2 px-4 py-2 ml-3 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 hover:text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white">
 							Next
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke-width="1.5"
+								stroke="currentColor"
+								class="w-4 h-4">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
+							</svg>
 						</a>
 					</div>
 				</div>
