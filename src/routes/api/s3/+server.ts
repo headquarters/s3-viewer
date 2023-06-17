@@ -1,4 +1,4 @@
-import { error, json, redirect } from '@sveltejs/kit';
+import { json } from '@sveltejs/kit';
 import type { RequestEvent } from "./$types";
 import { S3Client, ListObjectsV2Command, type ListObjectsV2CommandInput } from '@aws-sdk/client-s3';
 

@@ -92,6 +92,7 @@
 	$: error = data?.error; // TODO
 	$: continuationToken = data?.token;
 	$: noData = !error && !directories.length && !files.length;
+	$: console.log({ error, directories, files });
 	$: currentPage = Number($page.url.searchParams.get('page')) || 1;
 	$: previousUrl = getPreviousUrl(currentPage, continuationToken);
 	$: nextUrl = getNextUrl(currentPage, continuationToken);
@@ -149,7 +150,7 @@
 		<div class="flex flex-col justify-center">
 			{#if noData}
 				<div class="text-center">
-					<p>Nothing to list, yet. Provide a bucket and region to list contents.</p>
+					<p>Nothing to list, yet. Provide a bucket and region, then press List Objects.</p>
 				</div>
 			{:else}
 				<div>
@@ -181,6 +182,11 @@
 					<hr />
 
 					<div class="file-list max-h-96 h-screen p-3 overflow-y-scroll">
+						{#if error}
+							<div class="text-center">
+								<p>Error: {error}</p>
+							</div>
+						{/if}
 						{#if directories.length}
 							<ul>
 								{#each directories as dir}
@@ -247,7 +253,6 @@
 									stroke-linejoin="round"
 									d="M19.5 12h-15m0 0l6.75 6.75M4.5 12l6.75-6.75" />
 							</svg>
-
 							Previous
 						</a>
 

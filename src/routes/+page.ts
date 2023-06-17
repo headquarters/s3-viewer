@@ -13,13 +13,26 @@ interface LoadResponse {
 export async function load({ url, fetch }: PageLoadEvent): Promise<LoadResponse> {
   const path = url.searchParams.get('path') as string;
   const region = url.searchParams.get('region') as string;
-  // const token = url.searchParams.get('token') as string;
+
+
 
   if (path && region) {
-    const response = await fetch(`/api/s3?${url.searchParams.toString()}`);
+    try {
+      const response = await fetch(`/api/s3?${url.searchParams.toString()}`);
 
-    const data = await response.json();
-    return data;
+      const data = await response.json();
+
+      return data;
+    } catch (e) {
+      return {
+        path,
+        region,
+        directories: [],
+        files: [],
+        token: null,
+        error: e.message,
+      }
+    }
   }
 
   return {
@@ -28,6 +41,6 @@ export async function load({ url, fetch }: PageLoadEvent): Promise<LoadResponse>
     directories: [],
     files: [],
     token: null,
-    error: "Path and region are required."
+    error: null
   };
 }
