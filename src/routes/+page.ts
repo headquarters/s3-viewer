@@ -20,6 +20,11 @@ export async function load({ url, fetch }: PageLoadEvent): Promise<LoadResponse>
     try {
       const response = await fetch(`/api/s3?${url.searchParams.toString()}`);
 
+      if (!response.ok) {
+        // TODO: this is throwing a 500 but not capturing credentials error
+        throw new Error(response.statusText);
+      }
+
       const data = await response.json();
 
       return data;

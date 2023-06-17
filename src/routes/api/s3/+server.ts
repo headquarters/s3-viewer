@@ -1,8 +1,9 @@
 import { json } from '@sveltejs/kit';
 import type { RequestEvent } from "./$types";
 import { S3Client, ListObjectsV2Command, type ListObjectsV2CommandInput } from '@aws-sdk/client-s3';
+import { env } from '$env/dynamic/private';
 
-let client = new S3Client({ region: 'us-east-2' });
+let client = new S3Client({ credentials: { accessKeyId: env.AWS_ACCESS_KEY_ID, secretAccessKey: env.AWS_SECRET_ACCESS_KEY }, region: 'us-east-2' });
 
 const defaultRegion = "us-east-2";
 
