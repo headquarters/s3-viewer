@@ -6,7 +6,8 @@ let client: S3Client;
 
 const defaultRegion = "us-east-2";
 
-if (process.env.$NETLIFY === "true") {
+if (process.env.$SITE_NAME != "") {
+	// https://docs.netlify.com/functions/environment-variables/#netlify-read-only-variables
 	// `AWS_ACCESS_KEY_ID` is a reserved ENV variable in Netlify, so use a prefixed version there.
 	client = new S3Client({ credentials: { accessKeyId: process.env.SVELTE_AWS_ACCESS_KEY_ID as string, secretAccessKey: process.env.SVELTE_AWS_SECRET_ACCESS_KEY as string }, region: 'us-east-2' });
 } else {
