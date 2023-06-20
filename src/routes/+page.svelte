@@ -1,8 +1,8 @@
 <script lang="ts">
-	import LargeSpinner from '$components/LargeSpinner.svelte';
-	import SmallSpinner from '$components/SmallSpinner.svelte';
 	import type { PageData } from './$types';
 	import { page } from '$app/stores';
+	import { Spinner } from 'flowbite-svelte';
+	import { afterNavigate } from '$app/navigation';
 
 	export let data: PageData;
 	let currentPage = 1;
@@ -44,10 +44,6 @@
 		url.searchParams.append('region', region);
 		url.searchParams.append('page', '1');
 
-		// if (continuationToken) {
-		// url.searchParams.append('token', '');
-		// }
-
 		return url.href;
 	};
 
@@ -79,10 +75,13 @@
 		url.searchParams.append('path', removeLastPathSegment(path));
 		url.searchParams.append('region', region);
 		url.searchParams.append('page', '1');
-		// url.searchParams.append('token', '');
 
 		return url.href;
 	};
+
+	afterNavigate(() => {
+		isLoading = false;
+	});
 
 	$: path = data?.path || 's3://test-s3-listing-3846939';
 	$: pathParts = getBucketAndKey(path);
@@ -97,6 +96,7 @@
 	$: nextUrl = getNextUrl(currentPage, continuationToken);
 	$: hasPrevious = currentPage > 1;
 	$: hasNext = Boolean(continuationToken);
+	$: isLoading = false;
 </script>
 
 <svelte:head>
@@ -114,7 +114,10 @@
 					using the SDK's paginators). <em>Note:</em> The S3 bucket must be public unless you're running
 					this example where your AWS access key is available in the environment.
 				</p>
-				<form>
+				<form
+					on:submit={() => {
+						isLoading = true;
+					}}>
 					<div class="max-w-xs mb-4">
 						<label for="path" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
 							>S3 Path</label>
@@ -148,7 +151,11 @@
 			</div>
 
 			<div class="flex flex-col justify-center">
-				{#if noData}
+				{#if isLoading}
+					<div class="text-center mt-8">
+						<Spinner />
+					</div>
+				{:else if noData && !isLoading}
 					<div class="text-center">
 						<p>Nothing to list, yet. Provide a bucket and region, then press List Objects.</p>
 					</div>
